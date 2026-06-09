@@ -1,0 +1,37 @@
+server:
+  port: 8083
+
+# ------------------------
+# MongoDB Configuration
+# ------------------------
+#spring:
+#  data:
+#    mongodb:
+#      host: localhost
+#      port: 27017
+#      database: Microservice
+#      authentication-database: admin
+#      username: root
+#      password: Ganesh@123
+
+spring:
+  application:
+    name: RATING-SERVICE
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/Microservice
+
+
+    spring:
+      application:
+        name: RATING-SERVICE   #it is my application name
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+#    instance-id: ${spring.application.name}:${server.port}

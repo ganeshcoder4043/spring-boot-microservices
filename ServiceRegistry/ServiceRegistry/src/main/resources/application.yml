@@ -1,0 +1,13 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: SERVICE-REGISTRY
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false   #Eureka Server khud ko register nahi karega.
+    fetch-registry: false         #Eureka Server kisi aur registry se data fetch nahi karega.

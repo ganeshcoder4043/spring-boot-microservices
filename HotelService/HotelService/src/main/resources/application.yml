@@ -1,0 +1,39 @@
+server:
+  port: 8082
+
+# ------------------------
+# Database Configuration
+# ------------------------
+spring:
+  datasource:
+    name: microservices_db
+    url: jdbc:postgresql://localhost:5432/microservices
+    username: postgres
+    password: Ganesh@123
+    driver-class-name: org.postgresql.Driver
+
+  # JPA / Hibernate Configuration
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+
+
+    spring:
+      application:
+        name: HOTEL-SERVICE   #it is my application name
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+#    instance-id: ${spring.application.name}:${server.port}
