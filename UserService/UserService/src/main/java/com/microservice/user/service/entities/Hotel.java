@@ -1,5 +1,6 @@
 package com.microservice.user.service.entities;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,18 +10,14 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Rating {
+public class Hotel {
 
-    private String ratingId;
+    private String id;
 
-    private String userId;
+    private String name;
 
-    private String hotelId;
+    private String location;
 
-    private int rating;
-
-    private String feedback;
-
-    private Hotel hotel;
+    private String about;
 
 }

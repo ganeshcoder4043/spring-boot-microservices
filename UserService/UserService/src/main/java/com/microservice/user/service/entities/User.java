@@ -22,6 +22,9 @@ public class User {
     @Column(name = "UserName")
     private String name;
 
+    @Column(name = "UserEmail")
+    private String email;
+
     @Column(name = "UserLocation")
     private String location;
 
