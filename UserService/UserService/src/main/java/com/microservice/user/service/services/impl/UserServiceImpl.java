@@ -5,12 +5,13 @@ import com.microservice.user.service.entities.Rating;
 import com.microservice.user.service.entities.User;
 import com.microservice.user.service.exception.ResourceNotFoundException;
 import com.microservice.user.service.exception.UserNotFoundException;
+import com.microservice.user.service.external.servies.HotelFeignClientService;
+import com.microservice.user.service.external.servies.RatingFeignClientService;
 import com.microservice.user.service.repositories.UserRepository;
 import com.microservice.user.service.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,6 +29,12 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private HotelFeignClientService hotelFeignClientService;
+
+    @Autowired
+    private RatingFeignClientService ratingFeignClientService;
 
     private Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
@@ -52,7 +59,7 @@ public class UserServiceImpl implements UserService {
         return  user;
     }*/
 
-    @Override
+    /*@Override
     public User getUserById(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -70,6 +77,37 @@ public class UserServiceImpl implements UserService {
             Hotel hotel = forEntity.getBody();
 
             logger.info("response status code : {}", forEntity.getStatusCode());
+            rating.setHotel(hotel);
+            return rating;
+
+        }).collect(Collectors.toList());
+        user.setRatings(ratingList);
+        return user;
+    }*/
+
+
+
+    @Override
+    public User getUserById(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+//        http://localhost:8083/ratings/users/66a9b43c-bf55-4c90-8619-a2bd28564dad
+
+//        Rating[] ratingsOfUsers = restTemplate.getForObject("http://localhost:8083/ratings/users/" + user.getUserId(), Rating[].class);\
+//        Rating[] ratingsOfUsers = restTemplate.getForObject("http://RATINGSERVICE/ratings/users/" + user.getUserId(), Rating[].class);
+        Rating[] ratingsOfUsers = ratingFeignClientService.getRating(user.getUserId());  // feign client use 4
+
+//        logger.info("{}", ratingsOfUsers);
+
+        List<Rating> ratings = Arrays.stream(ratingsOfUsers).toList();
+
+        List<Rating> ratingList = ratings.stream().map(rating -> {
+//            ResponseEntity<Hotel> forEntity = restTemplate.getForEntity("http://localhost:8082/hotels/" + rating.getHotelId(), Hotel.class);
+//            ResponseEntity<Hotel> forEntity = restTemplate.getForEntity("http://HOTELSERVICE/hotels/" + rating.getHotelId(), Hotel.class);
+
+            Hotel hotel = hotelFeignClientService.getHotel(rating.getHotelId());  // Using feign client
+
+//            logger.info("response status code : {}", forEntity.getStatusCode());
             rating.setHotel(hotel);
             return rating;
 
@@ -111,8 +149,9 @@ public class UserServiceImpl implements UserService {
         for (User user : allUsers) {
             try {
                 // Fetch ratings as array
-                String ratingUrl = "http://RATINGSERVICE/ratings/users/" + user.getUserId();
-                Rating[] ratingsArray = restTemplate.getForObject(ratingUrl, Rating[].class);
+//                String ratingUrl = "http://RATINGSERVICE/ratings/users/" + user.getUserId();
+//                Rating[] ratingsArray = restTemplate.getForObject(ratingUrl, Rating[].class);
+                Rating[] ratingsArray = ratingFeignClientService.getRating(user.getUserId());
 
                 if (ratingsArray == null) {
                     user.setRatings(new ArrayList<>());
@@ -122,9 +161,10 @@ public class UserServiceImpl implements UserService {
                 // Stream: Fetch hotel for each rating
                 List<Rating> ratingsWithHotels = Arrays.stream(ratingsArray)
                         .map(rating -> {
-                            String hotelUrl = "http://HOTELSERVICE/hotels/" + rating.getHotelId();
+//                            String hotelUrl = "http://HOTELSERVICE/hotels/" + rating.getHotelId();
                             try {
-                                Hotel hotel = restTemplate.getForObject(hotelUrl, Hotel.class);
+//                                Hotel hotel = restTemplate.getForObject(hotelUrl, Hotel.class);
+                                Hotel hotel = hotelFeignClientService.getHotel(rating.getHotelId());
                                 rating.setHotel(hotel);
                                 logger.info("Hotel fetched for rating: {}", rating.getHotelId());
                             } catch (Exception e) {
