@@ -1,5 +1,5 @@
 server:
-  port: 4363
+  port: 8082
 
 # ------------------------
 # Database Configuration
