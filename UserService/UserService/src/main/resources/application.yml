@@ -1,18 +1,58 @@
+#server:
+#  port: 8081
+#
+## ------------------------
+## Database Configuration
+## ------------------------
+#spring:
+#  datasource:
+#    name: graphql_project
+#    url: jdbc:mysql://localhost:3306/microservices
+#    username: root
+#    password: Ganesh@123
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#
+#  # JPA / Hibernate Configuration
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQLDialect
+#        format_sql: true
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: true
+#
+#
+##    spring:
+##      application:
+##        name: USER-SERVICE
+##      config:
+##        import: optional:configserver:http://localhost:8085
+#
+##eureka:
+##  client:
+##    service-url:
+##      defaultZone: http://localhost:8761/eureka
+##    register-with-eureka: true
+##    fetch-registry: true
+##  instance:
+##    prefer-ip-address: true
+##    instance-id: ${spring.application.name}:${server.port}
+
+
 server:
   port: 8081
 
-# ------------------------
-# Database Configuration
-# ------------------------
 spring:
+  application:
+    name: USERSERVICE
+  config:
+    import: optional:configserver:http://localhost:8085
   datasource:
-    name: graphql_project
     url: jdbc:mysql://localhost:3306/microservices
     username: root
     password: Ganesh@123
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-  # JPA / Hibernate Configuration
   jpa:
     properties:
       hibernate:
@@ -21,18 +61,3 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-
-
-    spring:
-      application:
-        name: USER-SERVICE   #it is my application name
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-#    instance-id: ${spring.application.name}:${server.port}

@@ -24,7 +24,7 @@ spring:
 
     spring:
       application:
-        name: RATING-SERVICE   #it is my application name
+        name: RATINGSERVICE   #it is my application name
 
 eureka:
   client:
