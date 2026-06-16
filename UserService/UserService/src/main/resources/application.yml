@@ -61,3 +61,89 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+
+
+
+# Actuator Configuration
+management:
+  health:
+    circuitbreakers:
+      enabled: true                         # ✅ Circuit breaker health enable
+  endpoints:
+    web:
+      exposure:
+        include: "*"    # include: health,info,metrics,prometheus ,"*" means all                     # ✅ Sab expose karo (health, info, metrics, etc.)
+
+  endpoint:
+    health:
+      show-details: always                  # ✅ Detailed health info
+      show-components: always               # ✅ Components details
+
+# resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      ratingHotelCircuitBreaker:                                 # Circuit breaker ka naam (use in @CircuitBreaker annotation)
+        registerHealthIndicator: true                            # Actuator health endpoint par status dikhega (true = ON)
+        eventConsumerBufferSize: 10                              # Last 10 events memory mein store karega (debugging ke liye)
+        failureRateThreshold: 50                                 # 50% failures hone par circuit OPEN ho jayega
+        minimumNumberOfCalls: 5                                  # 5 calls ke baad hi threshold check karega (pehle nahi)
+        automaticTransitionFromOpenToHalfOpenEnabled: true       # OPEN se HALF-OPEN automatically ho jayega
+        waitDurationInOpenState: 6s                              # Circuit OPEN rahega 6 seconds, phir HALF-OPEN try karega
+        permittedNumberOfCallsInHalfOpenState: 3                 # HALF-OPEN mein sirf 3 calls allow karenge (test ke liye)
+        slidingWindowSize: 10                                    # Last 10 calls track karega (statistics ke liye)
+        slidingWindowType: COUNT_BASED                           # Call count based sliding window (COUNT_BASED ya TIME_BASED)
+
+
+#
+#resilience4j:
+#  circuitbreaker:
+#    instances:
+#      # ✅ Rating Service Circuit Breaker
+#      ratingCircuitBreaker:
+#        registerHealthIndicator: true
+#        eventConsumerBufferSize: 10
+#        failureRateThreshold: 50
+#        minimumNumberOfCalls: 5
+#        automaticTransitionFromOpenToHalfOpenEnabled: true
+#        waitDurationInOpenState: 6s
+#        permittedNumberOfCallsInHalfOpenState: 3
+#        slidingWindowSize: 10
+#        slidingWindowType: COUNT_BASED
+#
+#      # ✅ Hotel Service Circuit Breaker (Different config)
+#      hotelCircuitBreaker:
+#        registerHealthIndicator: true
+#        eventConsumerBufferSize: 20
+#        failureRateThreshold: 40          # ⬅️ 40% failures par OPEN (stricter)
+#        minimumNumberOfCalls: 10
+#        automaticTransitionFromOpenToHalfOpenEnabled: true
+#        waitDurationInOpenState: 10s      # ⬅️ 10 sec wait (longer)
+#        permittedNumberOfCallsInHalfOpenState: 5
+#        slidingWindowSize: 20
+#        slidingWindowType: COUNT_BASED
+#
+#      # ✅ Payment Service Circuit Breaker
+#      paymentCircuitBreaker:
+#        registerHealthIndicator: true
+#        eventConsumerBufferSize: 10
+#        failureRateThreshold: 30          # ⬅️ 30% failures par OPEN (very strict)
+#        minimumNumberOfCalls: 8
+#        automaticTransitionFromOpenToHalfOpenEnabled: true
+#        waitDurationInOpenState: 15s      # ⬅️ 15 sec wait
+#        permittedNumberOfCallsInHalfOpenState: 2
+#        slidingWindowSize: 15
+#        slidingWindowType: COUNT_BASED
+#
+#      # ✅ Notification Service Circuit Breaker
+#      notificationCircuitBreaker:
+#        registerHealthIndicator: true
+#        eventConsumerBufferSize: 10
+#        failureRateThreshold: 60          # ⬅️ 60% failures par OPEN (lenient)
+#        minimumNumberOfCalls: 3
+#        automaticTransitionFromOpenToHalfOpenEnabled: true
+#        waitDurationInOpenState: 4s       # ⬅️ 4 sec wait (quick retry)
+#        permittedNumberOfCallsInHalfOpenState: 3
+#        slidingWindowSize: 8
+#        slidingWindowType: COUNT_BASED
