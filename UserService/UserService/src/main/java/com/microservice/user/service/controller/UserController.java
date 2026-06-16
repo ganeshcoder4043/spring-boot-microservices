@@ -4,6 +4,7 @@ import com.microservice.user.service.entities.User;
 import com.microservice.user.service.services.UserService;
 import com.microservice.user.service.services.impl.UserServiceImpl;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,15 +29,23 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user1);
     }
 
-    @GetMapping("/{userId}")
+   /* @GetMapping("/{userId}")
+    @Retry(name = "ratingHotelRetry", fallbackMethod = "retryFallback")
     @CircuitBreaker(name = "ratingHotelCircuitBreaker", fallbackMethod = "ratingHotelFallback")
     public ResponseEntity<User> getUserById(@PathVariable String userId) {
+        logger.info("🔄 Attempting to fetch user: {}", userId);
         User userById = userService.getUserById(userId);
         return ResponseEntity.ok(userById);
     }
 
+    public ResponseEntity<User> retryFallback(String userId, Exception ex) {
+        logger.warn("All retries failed for user: {}, Error: {}", userId, ex.getMessage());
+        // Retry fail hone par Circuit Breaker check karega
+        throw new RuntimeException(ex); // Circuit Breaker fallback trigger karega
+    }
+
     public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex) {
-        logger.info("Fallback Is Executed Because Service Is Down : ", ex.getMessage());
+        logger.info("Circuit Breaker OPEN! Returning dummy user :{} ", ex.getMessage());
         User dummy = User.builder()
                 .name("Dummy")
                 .email("dummy@gmail.com")
@@ -44,7 +53,39 @@ public class UserController {
                 .about("SERVICE IS DOWN SO YOU CANT ACCESS DATA FROM RATING SERVICE AND HOTEL SERVICE")
                 .build();
         return new ResponseEntity<>(dummy, HttpStatus.OK);
+    }*/
+
+
+    //  Retry + Circuit Breaker
+    @GetMapping("/{userId}")
+    @Retry(name = "ratingHotelRetry", fallbackMethod = "retryFallback")
+    @CircuitBreaker(name = "ratingHotelCircuitBreaker", fallbackMethod = "ratingHotelFallback")
+    public ResponseEntity<User> getUserById(@PathVariable String userId) {
+        logger.info("Attempting to fetch user: {}", userId);
+        User userById = userService.getUserById(userId);
+        return ResponseEntity.ok(userById);
     }
+
+    //  Retry Fallback
+    public ResponseEntity<User> retryFallback(String userId, Exception ex) {
+        logger.warn("All retries failed for user: {}, Error: {}", userId, ex.getMessage());
+        // Retry fail hone par Circuit Breaker check karega
+        throw new RuntimeException(ex); // Circuit Breaker fallback trigger karega
+    }
+
+    //  Circuit Breaker Fallback (when circuit is OPEN)
+    public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex) {
+        logger.info("Circuit Breaker OPEN! Returning dummy user");
+        User dummy = User.builder()
+                .name("Dummy")
+                .email("dummy@gmail.com")
+                .location("Dummy-NCR")
+                .about("SERVICE IS DOWN SO YOU CAN'T ACCESS DATA")
+                .build();
+        return new ResponseEntity<>(dummy, HttpStatus.OK);
+    }
+
+
 
     @GetMapping("/all-user")
     public ResponseEntity<List<User>> getAllUsers() {
