@@ -95,19 +95,6 @@ resilience4j:
         slidingWindowSize: 10                                    # Last 10 calls track karega (statistics ke liye)
         slidingWindowType: COUNT_BASED                           # Call count based sliding window (COUNT_BASED ya TIME_BASED)
 
-  resilience4j:
-    circuitbreaker:
-      instances:
-        ratingHotelCircuitBreaker:
-          registerHealthIndicator: true
-          eventConsumerBufferSize: 10
-          failureRateThreshold: 50
-          minimumNumberOfCalls: 5
-          automaticTransitionFromOpenToHalfOpenEnabled: true
-          waitDurationInOpenState: 6s
-          permittedNumberOfCallsInHalfOpenState: 3
-          slidingWindowSize: 10
-          slidingWindowType: COUNT_BASED
 
     retry:
       instances:
@@ -121,6 +108,16 @@ resilience4j:
             - java.net.SocketTimeoutException
           ignore-exceptions:
             - com.microservice.user.service.exception.UserNotFoundException                   # ⬅️ 1 second gap between retries
+
+
+           # ✅ Rate Limiter Configuration
+    ratelimiter:
+      instances:
+        userRateLimiter:
+          limit-for-period: 10              # ⬅️ 10 requests allow karega
+          limit-refresh-period: 10s         # ⬅️ Har 10 second mein reset
+          timeout-duration: 2s           # ⬅️ Wait time if limit reached
+          registerHealthIndicator: true     # ⬅️ Actuator mein dikhega
 
 #
 #resilience4j:

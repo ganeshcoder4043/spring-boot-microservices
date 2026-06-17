@@ -4,6 +4,7 @@ import com.microservice.user.service.entities.User;
 import com.microservice.user.service.services.UserService;
 import com.microservice.user.service.services.impl.UserServiceImpl;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +59,9 @@ public class UserController {
 
     //  Retry + Circuit Breaker
     @GetMapping("/{userId}")
-    @Retry(name = "ratingHotelRetry", fallbackMethod = "retryFallback")
-    @CircuitBreaker(name = "ratingHotelCircuitBreaker", fallbackMethod = "ratingHotelFallback")
+//    @Retry(name = "ratingHotelRetry", fallbackMethod = "retryFallback")
+//    @CircuitBreaker(name = "ratingHotelCircuitBreaker", fallbackMethod = "ratingHotelFallback")
+    @RateLimiter(name = "userRateLimiter", fallbackMethod = "rateLimiterFallback")
     public ResponseEntity<User> getUserById(@PathVariable String userId) {
         logger.info("Attempting to fetch user: {}", userId);
         User userById = userService.getUserById(userId);
@@ -83,6 +85,19 @@ public class UserController {
                 .about("SERVICE IS DOWN SO YOU CAN'T ACCESS DATA")
                 .build();
         return new ResponseEntity<>(dummy, HttpStatus.OK);
+    }
+
+    // ✅ Rate Limiter Fallback (When limit exceeded)
+    public ResponseEntity<User> rateLimiterFallback(String userId, Exception ex) {
+        logger.warn("🚫 Rate limit exceeded for user: {}", userId);
+        User dummy = User.builder()
+                .userId("RATE_LIMITED")
+                .name("Too Many Requests")
+                .email("rate-limited@example.com")
+                .location("N/A")
+                .about("Rate limit exceeded. Please try after 10 seconds")
+                .build();
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(dummy);
     }
 
 
