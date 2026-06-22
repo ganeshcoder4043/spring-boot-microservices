@@ -59,8 +59,8 @@ public class UserController {
 
     //  Retry + Circuit Breaker
     @GetMapping("/{userId}")
-//    @Retry(name = "ratingHotelRetry", fallbackMethod = "retryFallback")
-//    @CircuitBreaker(name = "ratingHotelCircuitBreaker", fallbackMethod = "ratingHotelFallback")
+    @Retry(name = "ratingHotelRetry", fallbackMethod = "retryFallback")
+    @CircuitBreaker(name = "ratingHotelCircuitBreaker", fallbackMethod = "ratingHotelFallback")
     @RateLimiter(name = "userRateLimiter", fallbackMethod = "rateLimiterFallback")
     public ResponseEntity<User> getUserById(@PathVariable String userId) {
         logger.info("Attempting to fetch user: {}", userId);
