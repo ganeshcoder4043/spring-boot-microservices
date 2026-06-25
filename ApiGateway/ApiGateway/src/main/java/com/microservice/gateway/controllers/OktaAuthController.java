@@ -10,21 +10,19 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/auth")
-public class AuthController {
+@RequestMapping("/auth/okta")
+public class OktaAuthController {
 
-    private Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private Logger logger = LoggerFactory.getLogger(OktaAuthController.class);
 
     @GetMapping("/login")
     public ResponseEntity<AuthResponse> login(
@@ -72,6 +70,47 @@ public class AuthController {
     }
 
 }
+
+
+    //--------------------------
+
+    /*@GetMapping("/login")
+    public ResponseEntity<AuthResponse> login(
+
+            @RegisteredOAuth2AuthorizedClient("okta")
+            OAuth2AuthorizedClient client,
+
+            @AuthenticationPrincipal
+            OidcUser user) {
+
+        AuthResponse response = new AuthResponse();
+
+        response.setUserId(user.getEmail());
+        response.setAccessToken(client.getAccessToken().getTokenValue());
+
+        if(client.getRefreshToken() != null){
+            response.setRefreshToken(
+                    client.getRefreshToken().getTokenValue()
+            );
+        }
+
+        response.setExpireAt(
+                client.getAccessToken()
+                        .getExpiresAt()
+                        .getEpochSecond()
+        );
+
+        response.setAuthorities(
+                user.getAuthorities()
+                        .stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+}*/
 
 
     // ✅ EXISTING — Okta Login

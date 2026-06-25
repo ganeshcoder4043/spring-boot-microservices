@@ -1,9 +1,81 @@
+#server:
+#  port: 8084
+#
+#spring:
+#  application:
+#    name: APIGATEWAY
+#  cloud:
+#    gateway:
+#      discovery:
+#        locator:
+#          enabled: true
+#          lower-case-service-id: true
+#      routes:
+#        # User Service Route
+#        - id: USERSERVICE
+#          uri: lb://USERSERVICE
+#          predicates:
+#            - Path=/users/**
+#
+#        # Hotel Service Route
+#        - id: HOTELSERVICE
+#          uri: lb://HOTELSERVICE
+#          predicates:
+#            - Path=/hotels/**, /staffs/**
+#
+#        # Rating Service Route
+#        - id: RATINGSERVICE
+#          uri: lb://RATINGSERVICE
+#          predicates:
+#            - Path=/ratings/**
+#
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka/
+#    fetch-registry: true
+#    register-with-eureka: true
+#  instance:
+#    prefer-ip-address: true
+#
+#
+#
+#
+#
+#
+## okta configuration for api gateway
+#
+#okta:
+#  oauth2:
+#    issuer: https://integrator-4892497.okta.com/oauth2/default
+#    audience: api://default
+#    client-id: 0oa14blgm6ypqX9fu698
+#    client-secret: OpcInqSi5BsX3HzHcMEVw_NXWxrSHzh-0nK9FvtTGdV9VWLBSZ6ymUOz8fXp6XBU
+#    scopes: openid, profile, email, offline_access
+#
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#
+#          google:
+#            client-id: 184069606901-vnfo4r8rnk0tiuas65pvvbf5koa2slcb.apps.googleusercontent.com
+#            client-secret: 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
+#
+#            scope:
+#              - openid
+#              - email
+#              - profile
+#
+
+
 server:
   port: 8084
 
 spring:
   application:
     name: APIGATEWAY
+
   cloud:
     gateway:
       discovery:
@@ -11,23 +83,36 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
-        # User Service Route
         - id: USERSERVICE
           uri: lb://USERSERVICE
           predicates:
             - Path=/users/**
 
-        # Hotel Service Route
         - id: HOTELSERVICE
           uri: lb://HOTELSERVICE
           predicates:
-            - Path=/hotels/**, /staffs/**
+            - Path=/hotels/**,/staffs/**
 
-        # Rating Service Route
         - id: RATINGSERVICE
           uri: lb://RATINGSERVICE
           predicates:
             - Path=/ratings/**
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 184069606901-vnfo4r8rnk0tiuas65pvvbf5koa2slcb.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - openid
+              - email
+              - profile
+
+      resourceserver:
+        jwt:
+          issuer-uri: https://integrator-4892497.okta.com/oauth2/default
 
 eureka:
   client:
@@ -35,15 +120,9 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+
   instance:
     prefer-ip-address: true
-
-
-
-
-
-
-# okta configuration for api gateway
 
 okta:
   oauth2:
@@ -52,5 +131,3 @@ okta:
     client-id: 0oa14blgm6ypqX9fu698
     client-secret: OpcInqSi5BsX3HzHcMEVw_NXWxrSHzh-0nK9FvtTGdV9VWLBSZ6ymUOz8fXp6XBU
     scopes: openid, profile, email, offline_access
-
-

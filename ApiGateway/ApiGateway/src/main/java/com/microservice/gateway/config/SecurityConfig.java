@@ -13,7 +13,7 @@ import org.springframework.security.web.server.authentication.RedirectServerAuth
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-   @Bean //-> also u use SecurityFilterChain, but they use in mvc & SecurityWebFilterChain for microservice
+   /*@Bean //-> also u use SecurityFilterChain, but they use in mvc & SecurityWebFilterChain for microservice
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity httpSecurity){
         httpSecurity
                 // 1. Configure authorization rules
@@ -33,97 +33,41 @@ public class SecurityConfig {
                 );
         // Build the security filter chain and return it
         return httpSecurity.build();
-
-    }
-
+    }*/
 
 
+    //--------------------------------------
 
 
-  /*  @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity httpSecurity) {
-        httpSecurity
+    @Bean
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+
+        http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+
                 .authorizeExchange(auth -> auth
                         .pathMatchers(
                                 "/auth/login",
                                 "/auth/google/login",
-                                "/login",
+                                "/oauth2/**",
                                 "/login/**"
                         ).permitAll()
                         .anyExchange().authenticated()
                 )
-                .oauth2Login(oauth2 -> {})  // ✅ Simple — Spring handle karega
+
+                .oauth2Login(oauth2 -> {})
+
                 .oauth2Client(oauth2 -> {})
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> {})
-                )
-                .csrf(csrf -> csrf.disable());
 
-        return httpSecurity.build();
-    }*/
-
-
-
-   /* @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity httpSecurity) {
-        httpSecurity
-                .authorizeExchange(auth -> auth
-                        .pathMatchers("/auth/login", "/auth/google/login").permitAll()
-                        .anyExchange().authenticated()
-                )
-                // ✅ CORRECT WebFlux way — defaultSuccessUrl nahi hota
-                .oauth2Login(oauth2 -> oauth2
-                        .authenticationSuccessHandler(
-                                new RedirectServerAuthenticationSuccessHandler("/auth/google/login")
-                        )
-                )
-                .oauth2Client(oauth2 -> {})
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> {})
                 );
 
-        return httpSecurity.build();
-    }*/
-
-    /*@Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        http
-                .authorizeExchange(auth -> auth
-                        .pathMatchers("/auth/login", "/public/**").permitAll()
-                        .anyExchange().authenticated()
-                )
-                .oauth2Client(oauth2 -> {})      // ✅ Enable OAuth2 Client
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> {})
-                )
-                .csrf(csrf -> csrf.disable());
-
         return http.build();
-    }*/
+    }
 
 
 
-
-   /* @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        http
-                .authorizeExchange(auth -> auth
-                        .pathMatchers("/public/**", "/").permitAll()
-                        .anyExchange().authenticated()
-                )
-                .oauth2Client(oauth2 -> {})
-                .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> {})
-                )
-                .oauth2Login(oauth2 -> {})  // ✅ Enable Google login
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(
-                                new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
-                        )
-                );
-
-        return http.build();
-    }*/
 
 
     /*@Bean    // new way in 2026
