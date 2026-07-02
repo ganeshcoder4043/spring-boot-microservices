@@ -47,7 +47,7 @@ public class SecurityConfig {
 
                 .authorizeExchange(auth -> auth
                         .pathMatchers(
-                                "/auth/login",
+                                "/auth/okta/login",
                                 "/auth/google/login",
                                 "/oauth2/**",
                                 "/login/**"

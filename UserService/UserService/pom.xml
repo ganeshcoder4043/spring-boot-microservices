@@ -71,6 +71,26 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+
+        <!-- Add these dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.okta.spring</groupId>
+            <artifactId>okta-spring-boot-starter</artifactId>
+            <version>3.0.7</version>
+        </dependency>
+
         <!-- ✅ ONLY ONE Circuit Breaker Dependency -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

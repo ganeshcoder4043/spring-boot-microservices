@@ -1,32 +1,79 @@
+#server:
+#  port: 8082
+#
+## ------------------------
+## Database Configuration
+## ------------------------
+#spring:
+#  datasource:
+#    name: microservices_db
+#    url: jdbc:postgresql://localhost:5432/microservices
+#    username: postgres
+#    password: Ganesh@123
+#    driver-class-name: org.postgresql.Driver
+#
+#  # JPA / Hibernate Configuration
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        format_sql: true
+#    hibernate:
+#      ddl-auto: update
+#    show-sql: true
+#
+#
+#
+#    spring:
+#      application:
+#        name: HOTELSERVICE   #it is my application name
+#
+#eureka:
+#  client:
+#    service-url:
+#      defaultZone: http://localhost:8761/eureka
+#    register-with-eureka: true
+#    fetch-registry: true
+#  instance:
+#    prefer-ip-address: true
+##    instance-id: ${spring.application.name}:${server.port}
+#
+#
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: https://integrator-4892497.okta.com/oauth2/default
+
+
 server:
   port: 8082
 
-# ------------------------
-# Database Configuration
-# ------------------------
 spring:
+  application:
+    name: HOTELSERVICE
+
   datasource:
-    name: microservices_db
     url: jdbc:postgresql://localhost:5432/microservices
     username: postgres
     password: Ganesh@123
     driver-class-name: org.postgresql.Driver
 
-  # JPA / Hibernate Configuration
   jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    hibernate:
-      ddl-auto: update
-    show-sql: true
 
-
-
-    spring:
-      application:
-        name: HOTELSERVICE   #it is my application name
+  # ✅ CORRECT: security MUST be under spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://integrator-4892497.okta.com/oauth2/default
 
 eureka:
   client:
@@ -36,4 +83,3 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
-#    instance-id: ${spring.application.name}:${server.port}

@@ -65,6 +65,49 @@ spring:
 
 
 
+  security:
+    oauth2:
+      resourceserver: # ✅ User Service Resource Server hai
+        jwt:
+          issuer-uri: https://integrator-4892497.okta.com/oauth2/default
+      client: # ✅ Service-to-service communication ke liye
+        registration:
+          my-internal-client:
+            provider: okta
+            authorization-grant-type: client_credentials
+            scope: internal
+            client-id: 0oa14blgm6ypqX9fu698
+            client-secret: OpcInqSi5BsX3HzHcMEVw_NXWxrSHzh-0nK9FvtTGdV9VWLBSZ6ymUOz8fXp6XBU
+        provider:
+          okta:
+            issuer-uri: https://integrator-4892497.okta.com/oauth2/default
+
+
+
+
+
+
+
+
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: 184069606901-vnfo4r8rnk0tiuas65pvvbf5koa2slcb.apps.googleusercontent.com
+#            client-secret: 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
+#            scope: email,profile
+#          okta:
+#            client-id: 0oa14blgm6ypqX9fu698
+#            client-secret: OpcInqSi5BsX3HzHcMEVw_NXWxrSHzh-0nK9FvtTGdV9VWLBSZ6ymUOz8fXp6XBU
+#            scope: openid,profile,email,offline_access
+#        provider:
+#          okta:
+#            issuer-uri: https://integrator-4892497.okta.com/oauth2/default
+
+
+
+
 # Actuator Configuration
 management:
   health:
