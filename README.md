@@ -1,186 +1,166 @@
-# 🏨 Hotel Booking & Review — Spring Boot Microservices Platform
+# Microservices Learn — Hotel Booking Platform
 
-A production-style microservices system built with **Spring Boot 3/4**, **Spring Cloud**, and **OAuth2**, demonstrating service discovery, centralized configuration, an API Gateway with multi-provider authentication, inter-service communication via **OpenFeign**, and fault tolerance via **Resilience4j**.
+A Spring Boot microservices project simulating a hotel booking system with service discovery, centralized configuration, API gateway routing, OAuth2 security (Okta + Google), Feign-based inter-service communication, and Resilience4j fault tolerance.
 
----
-
-## 📐 Architecture Overview
+## Architecture Overview
 
 ```
-                                ┌───────────────────────┐
-                                │   Service Registry     │
-                                │   (Eureka Server)      │
-                                │   port: 8761            │
-                                └───────────▲─────────────┘
-                                            │ registers
-                    ┌───────────────────────┼──────────────────────┐
-                    │                       │                      │
-        ┌───────────┴───────────┐ ┌─────────┴─────────┐ ┌──────────┴──────────┐
-        │      API Gateway       │ │   Config Server    │ │   (all microservices  │
-        │  (Spring Cloud Gateway │ │   port: 8085        │ │    register with       │
-        │   + OAuth2 / Okta +    │ │   Git-backed config │ │    Eureka)             │
-        │   Google login)        │ │                      │ │                        │
-        │   port: 8084            │ └──────────────────────┘ └────────────────────────┘
-        └───────────┬────────────┘
-                     │ routes requests
-        ┌────────────┼──────────────────────────┐
-        │            │                          │
-┌───────┴───────┐ ┌──┴──────────────┐ ┌─────────┴─────────┐
-│  User Service  │ │  Hotel Service   │ │   Rating Service    │
-│  port: 8081     │ │  port: 8082       │ │   port: 8083          │
-│  MySQL          │ │  PostgreSQL       │ │   MongoDB              │
-│  (Feign client  │ │  (JPA)            │ │   (JPA/Mongo)           │
-│  → Hotel &      │ │                   │ │                         │
-│  Rating svc)    │ │                   │ │                         │
-└─────────────────┘ └───────────────────┘ └─────────────────────────┘
+                              ┌───────────────────────┐
+                              │   ServiceRegistry      │
+                              │   (Eureka Server)      │
+                              │   Port: 8761           │
+                              └───────────▲────────────┘
+                                          │ register/discover
+                    ┌─────────────────────┼─────────────────────┐
+                    │                     │                     │
+          ┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
+          │   ApiGateway       │ │   ConfigServer     │ │  Downstream       │
+          │   Port: 8084       │ │   Port: 8085       │ │  Services         │
+          │   Spring Cloud     │ │   Git-backed config │ │  (below)          │
+          │   Gateway (WebFlux)│ └────────────────────┘ └────────────────────┘
+          └─────────┬──────────┘
+                    │ routes /users/**, /hotels/**, /staffs/**, /ratings/**
+        ┌───────────┼────────────────┬───────────────────┐
+        ▼                            ▼                    ▼
+┌───────────────┐          ┌──────────────────┐   ┌──────────────────┐
+│  UserService   │──Feign──▶│  HotelService    │   │  RatingService    │
+│  Port: 8081    │──Feign──▶│  Port: 8082      │   │  Port: 8083       │
+│  MySQL         │          │  PostgreSQL      │   │  MongoDB          │
+└───────────────┘          └──────────────────┘   └──────────────────┘
 ```
 
-All services register themselves with **Eureka** for discovery, pull shared configuration from the **Config Server** (Git-backed), and are fronted by a single **API Gateway** that terminates OAuth2 login and forwards authenticated traffic downstream.
-
----
-
-## 🧩 Services
+## Services
 
 | Service | Port | Database | Responsibility |
 |---|---|---|---|
-| **ServiceRegistry** | 8761 | — | Eureka server; central service discovery |
-| **ConfigServer** | 8085 | — | Serves shared config from a Git repo to every service |
-| **ApiGateway** | 8084 | — | Single entry point; Spring Cloud Gateway (WebFlux); OAuth2 login (Okta OIDC + Google); JWT-based resource server; routes to downstream services |
-| **UserService** | 8081 | MySQL | User CRUD; aggregates a user's hotel ratings by calling RatingService + HotelService via **OpenFeign**; wraps calls with **Resilience4j** (Retry, Circuit Breaker, Rate Limiter) |
-| **HotelService** | 8082 | PostgreSQL | Hotel CRUD; role/scope-protected endpoints (`ADMIN`, `SCOPE_internal`) |
-| **RatingService** | 8083 | MongoDB | Rating CRUD; lookups by `userId` / `hotelId`; role/scope-protected endpoints |
+| **ServiceRegistry** | 8761 | — | Eureka service discovery server |
+| **ConfigServer** | 8085 | — | Centralized config, backed by a Git repo |
+| **ApiGateway** | 8084 | — | Single entry point; routes requests, handles OAuth2 login (Okta + Google) |
+| **UserService** | 8081 | MySQL | User CRUD; aggregates ratings + hotel data via Feign clients; Resilience4j (Retry, Circuit Breaker, Rate Limiter) |
+| **HotelService** | 8082 | PostgreSQL | Hotel CRUD; staff listing |
+| **RatingService** | 8083 | MongoDB | Rating CRUD, keyed by userId / hotelId |
 
----
+## Tech Stack
 
-## 🛠️ Tech Stack
+- **Java 17 / 21**, **Spring Boot 3.x**, **Spring Cloud 2023.x**
+- **Spring Cloud Gateway** (reactive, WebFlux) — API Gateway
+- **Netflix Eureka** — service discovery
+- **Spring Cloud Config** — centralized configuration (Git-backed)
+- **Spring Cloud OpenFeign** — declarative REST clients between services
+- **Spring Security OAuth2** (Client + Resource Server) — Okta (OIDC) + Google login
+- **Resilience4j** — Circuit Breaker, Retry, Rate Limiter (used in UserService)
+- **Spring Data JPA** (MySQL, PostgreSQL), **Spring Data MongoDB**
+- **Lombok**, **Maven**
 
-- **Language / Runtime:** Java 17–21
-- **Framework:** Spring Boot 3.x / 4.x, Spring Cloud 2023–2025 release train
-- **Service Discovery:** Netflix Eureka (`spring-cloud-starter-netflix-eureka-client` / `-server`)
-- **Config Management:** Spring Cloud Config Server (Git-backed)
-- **API Gateway:** Spring Cloud Gateway (reactive / WebFlux)
-- **Security:** Spring Security + OAuth2 (Okta OIDC provider, Google provider), JWT resource server, method-level security (`@PreAuthorize`)
-- **Inter-service Communication:** OpenFeign, `RestTemplate` with `@LoadBalanced`
-- **Resilience:** Resilience4j — Circuit Breaker, Retry, Rate Limiter
-- **Persistence:** MySQL (UserService), PostgreSQL (HotelService), MongoDB (RatingService)
-- **Build Tool:** Maven (with Maven Wrapper `mvnw`)
-- **Observability:** Spring Boot Actuator (health, metrics, circuit-breaker health indicators)
+## Prerequisites
 
----
+- JDK 17+ (some modules use 21)
+- Maven (or use the included `mvnw` wrapper)
+- MySQL running locally with a `microservices` database (UserService)
+- PostgreSQL running locally with a `microservices` database (HotelService)
+- MongoDB running locally (`Microservice` database, RatingService)
+- An Okta developer account (OIDC app) and a Google OAuth2 client, if you want to test login end-to-end
 
-## 🔐 Security Model
+## Configuration & Secrets
 
-- **API Gateway**
-  - `oauth2Login` — supports Okta (OIDC) and Google sign-in
-  - `oauth2Client` — manages authorized client tokens
-  - `oauth2ResourceServer` (JWT) — validates bearer tokens on incoming requests
-  - Public routes: `/auth/okta/login`, `/auth/google/login`, `/oauth2/**`, `/login/**`; everything else requires authentication
-- **Downstream services** (User / Hotel / Rating)
-  - Each is a JWT **resource server** validating tokens issued by Okta
-  - Method-level authorization via `@PreAuthorize("hasRole('ADMIN')")` / `@PreAuthorize("hasAuthority('SCOPE_internal')")`
-- **Service-to-service calls** (UserService → HotelService/RatingService)
-  - Use the OAuth2 **client_credentials** grant (`my-internal-client`) so Feign/RestTemplate calls carry a valid internal `Bearer` token
+⚠️ **Do not commit real credentials.** The `application.yml` files in this repo currently contain plaintext client secrets, DB passwords, and Okta issuer/client IDs — treat those as placeholders and move them to environment variables or a private Config Server Git repo before pushing anywhere public. Example pattern:
 
-> ⚠️ **Note:** The current `application.yml` files contain hard-coded Okta/Google client secrets and DB passwords for local development convenience. **Before pushing to a public repo or deploying anywhere**, move these into environment variables or a secrets manager (Vault, AWS Secrets Manager, etc.) and rotate the exposed credentials.
+```yaml
+okta:
+  oauth2:
+    issuer: ${OKTA_ISSUER_URI}
+    client-id: ${OKTA_CLIENT_ID}
+    client-secret: ${OKTA_CLIENT_SECRET}
+```
 
----
+## Startup Order
 
-## 🧯 Resilience (UserService → Hotel/Rating calls)
+Services must be started in this order so discovery/config/routing work correctly:
 
-Configured per-endpoint in `UserService/application.yml`:
+1. **ServiceRegistry** (Eureka) — `8761`
+2. **ConfigServer** — `8085`
+3. **HotelService**, **RatingService**, **UserService** — `8082`, `8083`, `8081`
+4. **ApiGateway** — `8084` (last, since it routes to the others)
 
-| Pattern | Purpose |
-|---|---|
-| **Retry** (`ratingHotelRetry`) | Up to 3 attempts, 1s wait, retries on timeouts/`IOException`/`HttpServerErrorException` |
-| **Circuit Breaker** (`ratingHotelCircuitBreaker`) | Opens at 50% failure rate (min. 5 calls), stays open 6s, then half-opens for 3 trial calls |
-| **Rate Limiter** (`userRateLimiter`) | 10 requests / 10s window per instance, 2s timeout |
+### Run each service
 
-Fallback methods return a safe dummy `User` response instead of propagating the failure to the client.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Java 17+ (Java 21 recommended for newer modules)
-- Maven (or use the bundled `mvnw` / `mvnw.cmd`)
-- Running instances of: **MySQL**, **PostgreSQL**, **MongoDB**
-- An Okta developer org (and/or Google OAuth2 credentials) if you want to exercise the login flow
-
-### Startup order matters
-Because everything depends on discovery and config, always start services in this order:
-
-1. **ServiceRegistry** (Eureka) → `http://localhost:8761`
-2. **ConfigServer** → `http://localhost:8085`
-3. **ApiGateway**, **UserService**, **HotelService**, **RatingService** (any order — they'll register with Eureka once up)
-
-### Run a single service
 ```bash
-cd ServiceRegistry/ServiceRegistry
-./mvnw spring-boot:run
-```
-Repeat for `ConfigServer`, `ApiGateway`, `UserService`, `HotelService`, `RatingService` in their own directories.
-
-### Databases
-Create the databases referenced in each service's `application.yml` before starting:
-```sql
--- MySQL (UserService)
-CREATE DATABASE microservices;
-
--- PostgreSQL (HotelService)
-CREATE DATABASE microservices;
-```
-```bash
-# MongoDB (RatingService) — created automatically on first write
-mongodb://localhost:27017/Microservice
+cd ServiceRegistry/ServiceRegistry && ./mvnw spring-boot:run
+cd ConfigServer/ConfigServer && ./mvnw spring-boot:run
+cd HotelService/HotelService && ./mvnw spring-boot:run
+cd RatingService/RatingService && ./mvnw spring-boot:run
+cd UserService/UserService && ./mvnw spring-boot:run
+cd ApiGateway/ApiGateway && ./mvnw spring-boot:run
 ```
 
----
+Eureka dashboard: http://localhost:8761
 
-## 📡 Key Endpoints (via API Gateway, port 8084)
+## API Endpoints (via Gateway, port 8084)
 
-| Method | Path | Service | Auth |
-|---|---|---|---|
-| `POST` | `/users/create-user` | UserService | Authenticated |
-| `GET` | `/users/{userId}` | UserService | Authenticated (Retry + Circuit Breaker + Rate Limit) |
-| `GET` | `/users/all-user` | UserService | Authenticated |
-| `POST` | `/hotels/hotel-create` | HotelService | `ADMIN` |
-| `GET` | `/hotels/all-hotels` | HotelService | Authenticated |
-| `GET` | `/hotels/{hotelId}` | HotelService | `SCOPE_internal` |
-| `POST` | `/ratings/create-rating` | RatingService | `ADMIN` |
-| `GET` | `/ratings/getAllRatings` | RatingService | Authenticated |
-| `GET` | `/ratings/users/{userId}` | RatingService | `SCOPE_internal` |
-| `GET` | `/auth/okta/login` | ApiGateway | Public (starts OIDC flow) |
-| `GET` | `/auth/google/login` | ApiGateway | Public (starts OAuth2 flow) |
+### UserService (`/users/**`)
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/users/create-user` | Create a user |
+| GET | `/users/{userId}` | Fetch user + aggregated ratings/hotel data (Retry + Circuit Breaker + Rate Limiter) |
+| GET | `/users/all-user` | List all users |
+| PUT | `/users/{userId}` | Update user |
+| DELETE | `/users/{userId}` | Delete user |
 
----
+### HotelService (`/hotels/**`, `/staffs/**`)
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/hotels/hotel-create` | Requires `ROLE_ADMIN` |
+| GET | `/hotels/all-hotels` | Public (authenticated) |
+| GET | `/hotels/{hotelId}` | Requires `SCOPE_internal` (service-to-service) |
+| PUT | `/hotels/{hotelId}` | Requires `ROLE_ADMIN` |
+| DELETE | `/hotels/{hotelId}` | Requires `ROLE_ADMIN` |
+| GET | `/staffs` | List staff |
 
-## 📁 Project Structure
+### RatingService (`/ratings/**`)
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/ratings/create-rating` | Requires `ROLE_ADMIN` |
+| GET | `/ratings/getAllRatings` | Public (authenticated) |
+| GET | `/ratings/users/{userId}` | Requires `SCOPE_internal` |
+| GET | `/ratings/hotels/{hotelId}` | Requires `ROLE_ADMIN` |
+
+### Auth (ApiGateway)
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/auth/okta/login` | Returns JWT + refresh token after Okta OIDC login |
+| GET | `/auth/google/login` | Returns access token after Google login |
+
+## Security Model
+
+- **ApiGateway**: `oauth2Login` (Okta OIDC + Google) for user-facing login, plus `oauth2ResourceServer` (JWT) to validate tokens on downstream calls.
+- **HotelService / RatingService / UserService**: pure `oauth2ResourceServer` — validate the JWT issued by Okta, and use `@PreAuthorize` for role/scope-based method security (`ROLE_ADMIN`, `SCOPE_internal`).
+- **Service-to-service calls** (UserService → HotelService/RatingService via Feign): authenticated using an OAuth2 **client-credentials** grant (`my-internal-client`), injected via a Feign `RequestInterceptor` / RestTemplate interceptor.
+
+## Resilience (UserService → Hotel/Rating calls)
+
+Configured via Resilience4j in `UserService/src/main/resources/application.yml`:
+
+- **Circuit Breaker** (`ratingHotelCircuitBreaker`) — opens after 50% failure rate over the last 10 calls, returns a dummy fallback `User`.
+- **Retry** (`ratingHotelRetry`) — up to 3 attempts, 1s wait, ignores `UserNotFoundException`.
+- **Rate Limiter** (`userRateLimiter`) — 10 requests / 10s window, returns `429 TOO_MANY_REQUESTS` fallback.
+
+Actuator health (with circuit breaker status) is exposed at `/actuator/health` on UserService.
+
+## Notes / Known Issues
+
+- Some modules mix Spring Boot 3.2.x and 4.0.x / Spring Cloud versions across services (visible in the `pom.xml` files and surefire reports) — align these before deploying together, since version drift is what caused the `ConfigDataLocationResolverContext` / `JwtDecoder` bean errors seen in the test reports.
+- RatingService and HotelService currently fail their `contextLoads` test unless a `JwtDecoder` bean (i.e. a valid `issuer-uri`) is reachable — mock or profile-isolate this for CI.
+
+## Project Structure
 
 ```
 Microservices Learn/
-├── ServiceRegistry/     # Eureka server
-├── ConfigServer/        # Centralized Git-backed config
-├── ApiGateway/          # Gateway + OAuth2 login (Okta/Google)
-├── UserService/         # User CRUD + Feign aggregation + Resilience4j
-├── HotelService/        # Hotel CRUD (PostgreSQL)
-└── RatingService/       # Rating CRUD (MongoDB)
+├── ServiceRegistry/ServiceRegistry/
+├── ConfigServer/ConfigServer/
+├── ApiGateway/ApiGateway/
+├── UserService/UserService/
+├── HotelService/HotelService/
+└── RatingService/RatingService/
 ```
 
----
-
-## 🗺️ Roadmap / Possible Improvements
-
-- [ ] Move all secrets out of `application.yml` into environment variables / a vault
-- [ ] Add a distributed tracing setup (Micrometer Tracing + Zipkin) across the gateway and services
-- [ ] Add Dockerfiles + `docker-compose.yml` to spin up all services + DBs together
-- [ ] Add integration tests for the Feign clients using WireMock
-- [ ] Add centralized logging (ELK/Loki) for correlating requests across services
-
----
-
-## 👤 Author
-
-**Ganesh Kumar**
-Aspiring Full Stack Java Backend Developer
-GitHub: [github.com/ganeshcoder4043](https://github.com/ganeshcoder4043) · LinkedIn: [linkedin.com/in/ganesh-kumar-coder](https://linkedin.com/in/ganesh-kumar-coder/)
+Each folder is an independent Maven project with its own `pom.xml`, `mvnw` wrapper, and `application.yml`.
